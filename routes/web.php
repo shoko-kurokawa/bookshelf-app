@@ -2,17 +2,16 @@
 
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
+Route::middleware('auth')->get('/home', function () {
+    return '
+        <h1>ログイン成功！BookShelfへようこそ！</h1>
+        <form method="POST" action="/logout">
+            <input type="hidden" name="_token" value="' . csrf_token() . '">
+            <button type="submit">ログアウト</button>
+        </form>
+    ';
+})->name('home');
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login');
 });
