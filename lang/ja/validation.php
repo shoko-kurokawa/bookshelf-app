@@ -12,10 +12,18 @@ return [
         'string' => ':attributeは:max文字以内で入力してください。',
     ],
 
+    'size' => [
+        'numeric' => ':attributeは:sizeで入力してください。',
+        'file' => ':attributeは:sizeキロバイトで入力してください。',
+        'string' => ':attributeは:size文字で入力してください。',
+        'array' => ':attributeは:size個にしてください。',
+    ],
+
     'attributes' => [
         'name' => 'お名前',
         'email' => 'メールアドレス',
         'password' => 'パスワード',
         'password_confirmation' => 'パスワード確認',
+        'isbn' => 'ISBN',
     ],
 ];
