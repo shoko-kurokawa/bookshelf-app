@@ -19,11 +19,18 @@ return [
         'array' => ':attributeは:size個にしてください。',
     ],
 
+    'integer' => ':attributeは整数で入力してください。',
+    'between' => [
+        'numeric' => ':attributeは:minから:maxの間で入力してください。',
+    ],
+
     'attributes' => [
         'name' => 'お名前',
         'email' => 'メールアドレス',
         'password' => 'パスワード',
         'password_confirmation' => 'パスワード確認',
         'isbn' => 'ISBN',
+        'rating' => '評価',
+        'comment' => 'コメント',
     ],
 ];

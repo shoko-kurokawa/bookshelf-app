@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BookController;
+use App\Http\Controllers\ReviewController;
 use Illuminate\Support\Facades\Route;
 
 // トップページ
@@ -34,6 +35,20 @@ Route::middleware('auth')->group(function () {
         ->name('books.destroy');
 });
 
+// レビュー機能（ログイン必須）
+Route::middleware('auth')->group(function () {
+    Route::post('/books/{book}/reviews', [ReviewController::class, 'store'])
+        ->name('reviews.store');
+
+    Route::get('/reviews/{review}/edit', [ReviewController::class, 'edit'])
+        ->name('reviews.edit');
+
+    Route::put('/reviews/{review}', [ReviewController::class, 'update'])
+        ->name('reviews.update');
+
+    Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])
+        ->name('reviews.destroy');
+});
 
 // Issue #1で作成した仮のホーム画面
 Route::middleware('auth')->get('/home', function () {
