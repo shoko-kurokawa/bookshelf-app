@@ -39,7 +39,7 @@ class BookSeeder extends Seeder
                     'author' => $author,
                     'published_date' => $date,
                     'description' => "『{$title}』の紹介文です。{$author}による書籍です。",
-                    'image_url' => 'https://placehold.co/200x300/e2e8f0/475569?text=' . ($index + 1),
+                    'image_url' => 'https://placehold.co/200x300/e2e8f0/475569?text='.($index + 1),
                 ]
             );
 

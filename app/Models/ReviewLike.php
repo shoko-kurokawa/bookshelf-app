@@ -9,7 +9,7 @@ class ReviewLike extends Model
 {
     protected $fillable = [
         'user_id',
-        'revies_id'
+        'review_id',
     ];
 
     public function user(): BelongsTo
