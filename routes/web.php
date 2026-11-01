@@ -4,6 +4,7 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ReviewLikeController;
+use App\Http\Controllers\RankingController;
 use Illuminate\Support\Facades\Route;
 
 // トップページ
@@ -63,12 +64,16 @@ Route::post('/books/{book}/favorite', [FavoriteController::class, 'toggle'])
 Route::post('/reviews/{review}/like', [ReviewLikeController::class, 'toggle'])
     ->name('reviews.like');
 
+// ランキング機能
+Route::get('/ranking', [RankingController::class, 'index'])
+    ->name('ranking.index');
+
 // Issue #1で作成した仮のホーム画面
 Route::middleware('auth')->get('/home', function () {
     return '
         <h1>ログイン成功！BookShelfへようこそ！</h1>
         <form method="POST" action="/logout">
-            <input type="hidden" name="_token" value="'.csrf_token().'">
+            <input type="hidden" name="_token" value="' . csrf_token() . '">
             <button type="submit">ログアウト</button>
         </form>
     ';
