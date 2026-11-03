@@ -2,10 +2,10 @@
 
 use App\Http\Controllers\BookController;
 use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\GenreController;
+use App\Http\Controllers\RankingController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ReviewLikeController;
-use App\Http\Controllers\RankingController;
-use App\Http\Controllers\GenreController;
 use Illuminate\Support\Facades\Route;
 
 // トップページ
@@ -77,7 +77,7 @@ Route::middleware('auth')->get('/home', function () {
     return '
         <h1>ログイン成功！BookShelfへようこそ！</h1>
         <form method="POST" action="/logout">
-            <input type="hidden" name="_token" value="' . csrf_token() . '">
+            <input type="hidden" name="_token" value="'.csrf_token().'">
             <button type="submit">ログアウト</button>
         </form>
     ';
