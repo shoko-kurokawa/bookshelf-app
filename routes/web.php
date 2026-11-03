@@ -5,6 +5,7 @@ use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ReviewLikeController;
 use App\Http\Controllers\RankingController;
+use App\Http\Controllers\GenreController;
 use Illuminate\Support\Facades\Route;
 
 // トップページ
@@ -67,6 +68,9 @@ Route::post('/reviews/{review}/like', [ReviewLikeController::class, 'toggle'])
 // ランキング機能
 Route::get('/ranking', [RankingController::class, 'index'])
     ->name('ranking.index');
+
+// ジャンル管理
+Route::resource('genres', GenreController::class);
 
 // Issue #1で作成した仮のホーム画面
 Route::middleware('auth')->get('/home', function () {
