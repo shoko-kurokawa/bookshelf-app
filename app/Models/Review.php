@@ -39,4 +39,12 @@ class Review extends Model
         return $this->belongsToMany(User::class, 'review_likes')
             ->withTimestamps();
     }
+
+    /**
+     * レビューに付けられたいいね
+     */
+    public function reviewLikes(): HasMany
+    {
+        return $this->hasMany(ReviewLike::class);
+    }
 }

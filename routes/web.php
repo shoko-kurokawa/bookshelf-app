@@ -54,23 +54,26 @@ Route::middleware('auth')->group(function () {
         ->name('reviews.destroy');
 });
 
-// お気に入り機能
-Route::get('/favorites', [FavoriteController::class, 'index'])
-    ->name('favorites.index');
+// お気に入り機能・レビューいいね機能（ログイン必須）
+Route::middleware('auth')->group(function () {
+    Route::get('/favorites', [FavoriteController::class, 'index'])
+        ->name('favorites.index');
 
-Route::post('/books/{book}/favorite', [FavoriteController::class, 'toggle'])
-    ->name('favorites.toggle');
+    Route::post('/books/{book}/favorite', [FavoriteController::class, 'toggle'])
+        ->name('favorites.toggle');
 
-// レビューいいね機能
-Route::post('/reviews/{review}/like', [ReviewLikeController::class, 'toggle'])
-    ->name('reviews.like');
+    Route::post('/reviews/{review}/like', [ReviewLikeController::class, 'toggle'])
+        ->name('reviews.like');
+});
 
-// ランキング機能
+// ランキング機能（ログイン不要）
 Route::get('/ranking', [RankingController::class, 'index'])
     ->name('ranking.index');
 
-// ジャンル管理
-Route::resource('genres', GenreController::class);
+// ジャンル管理（ログイン必須）
+Route::middleware('auth')->group(function () {
+    Route::resource('genres', GenreController::class);
+});
 
 // Issue #1で作成した仮のホーム画面
 Route::middleware('auth')->get('/home', function () {
