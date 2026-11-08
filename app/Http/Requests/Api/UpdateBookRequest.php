@@ -9,8 +9,12 @@ class UpdateBookRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // 基本版APIは認証不要
-        return true;
+        $book = $this->route('book');
+
+        // 所有者以外は403エラー
+        return $book !== null
+            && $this->user() !== null
+            && (int) $book->user_id === (int) $this->user()->id;
     }
 
     public function rules(): array
@@ -18,11 +22,8 @@ class UpdateBookRequest extends FormRequest
         $book = $this->route('book');
 
         return [
-            'user_id' => [
-                'required',
-                'integer',
-                Rule::exists('users', 'id'),
-            ],
+            // 書籍の所有者変更は禁止
+            'user_id' => ['prohibited'],
             'title' => ['required', 'string', 'max:255'],
             'author' => ['required', 'string', 'max:255'],
             'isbn' => [

@@ -9,18 +9,15 @@ class StoreBookRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // 基本版APIは認証不要
+        // 認証はルートのauth:sanctumで行う
         return true;
     }
 
     public function rules(): array
     {
         return [
-            'user_id' => [
-                'required',
-                'integer',
-                Rule::exists('users', 'id'),
-            ],
+            // user_idは受け取らず、Controllerで認証ユーザーから取得
+            'user_id' => ['prohibited'],
             'title' => ['required', 'string', 'max:255'],
             'author' => ['required', 'string', 'max:255'],
             'isbn' => [
