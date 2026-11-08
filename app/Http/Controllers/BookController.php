@@ -16,15 +16,76 @@ use Illuminate\View\View;
 
 class BookController extends Controller
 {
-    // 書籍一覧
-    public function index(): View
+    /**
+     * 書籍一覧
+     * 
+     * キーワード検索、ジャンル絞り込み、
+     * 並び替えを組み合わせて表示する。
+     */
+    public function index(Request $request): View
     {
-        $books = Book::with('genres')
-            ->withAvg('reviews', 'rating')
-            ->latest()
-            ->paginate(10);
+        // 検索条件をバリデーション
+        $validated = $request->validate([
+            'keyword' => ['nullable', 'string', 'max:255'],
+            'genre' => ['nullable', 'integer', 'exists:genres,id'],
+            'sort' => ['nullable', 'in:newest,oldest,rating,title'],
+        ]);
 
-        return view('books.index', compact('books'));
+        $keyword = trim($validated['keyword'] ?? '');
+        $genreId = $validated['genre'] ?? null;
+        $sort = $validated['sort'] ?? 'newest';
+
+        // 書籍一覧のクエリ
+        $query = Book::query()
+            ->with('genres')
+            ->withAvg('reviews', 'rating');
+
+        // キーワード検索（タイトル・著書）
+        if ($keyword !== '') {
+            $query->where(function ($q) use ($keyword) {
+                $q->where('title', 'like', '%' . $keyword . '%')
+                    ->orWhere('author', 'like', '%' . $keyword . '%');
+            });
+        }
+
+        // ジャンル絞り込み
+        if ($genreId !== null) {
+            $query->whereHas('genres', function ($q) use ($genreId) {
+                $q->where('genres.id', $genreId);
+            });
+        }
+
+        // 並び替え
+        switch ($sort) {
+            case 'oldest':
+                $query->orderBy('created_at', 'asc')
+                    ->orderBy('id', 'asc');
+                break;
+
+            case 'rating':
+                $query->orderByDesc('reviews_avg_rating')
+                    ->orderByDesc('id');
+                break;
+
+            case 'title':
+                $query->orderBy('title', 'asc')
+                    ->orderBy('id', 'asc');
+                break;
+
+            case 'newest':
+            default:
+                $query->orderByDesc('created_at')
+                    ->orderByDesc('id');
+                break;
+        }
+
+        // ページ移動時にも検索条件を維持
+        $books = $query->paginate(10)->withQueryString();
+
+        // ジャンル選択肢
+        $genres = Genre::orderBy('id')->get();
+
+        return view('books.index', compact('books', 'genres'));
     }
 
     // 書籍登録画面
