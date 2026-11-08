@@ -18,7 +18,7 @@ class BookController extends Controller
 {
     /**
      * 書籍一覧
-     * 
+     *
      * キーワード検索、ジャンル絞り込み、
      * 並び替えを組み合わせて表示する。
      */
@@ -43,8 +43,8 @@ class BookController extends Controller
         // キーワード検索（タイトル・著書）
         if ($keyword !== '') {
             $query->where(function ($q) use ($keyword) {
-                $q->where('title', 'like', '%' . $keyword . '%')
-                    ->orWhere('author', 'like', '%' . $keyword . '%');
+                $q->where('title', 'like', '%'.$keyword.'%')
+                    ->orWhere('author', 'like', '%'.$keyword.'%');
             });
         }
 

@@ -35,7 +35,7 @@ class UpdateReadingPlanRequest extends FormRequest
             function (Validator $validator) {
                 $readingPlan = $this->route('readingPlan');
 
-                if (!$readingPlan instanceof ReadingPlan) {
+                if (! $readingPlan instanceof ReadingPlan) {
                     return;
                 }
 

@@ -4,8 +4,11 @@ namespace Tests\Feature;
 
 use App\Models\Book;
 use App\Models\Genre;
+use App\Models\Review;
 use App\Models\User;
+use App\Services\GoogleBooksService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Mockery;
 use Tests\TestCase;
 
 class BookTest extends TestCase
@@ -331,5 +334,315 @@ class BookTest extends TestCase
             'book_id' => $book->id,
             'genre_id' => $newGenre->id,
         ]);
+    }
+
+    /**
+     * タイトルでキーワード検索できる
+     */
+    public function test_books_can_be_searched_by_title(): void
+    {
+        $matched = Book::factory()->create([
+            'title' => 'Laravel実践入門',
+            'author' => '山田太郎',
+        ]);
+
+        Book::factory()->create([
+            'title' => 'PHP基礎',
+            'author' => '鈴木花子',
+        ]);
+
+        $this->get(route('books.index', ['keyword' => 'Laravel']))
+            ->assertOk()
+            ->assertViewHas('books', function ($books) use ($matched) {
+                return $books->total() === 1
+                    && $books->first()->id === $matched->id;
+            });
+    }
+
+    /**
+     * 著者名でキーワード検索できる
+     */
+    public function test_books_can_be_searched_by_author(): void
+    {
+        $matched = Book::factory()->create([
+            'title' => 'テスト書籍A',
+            'author' => '夏目漱石',
+        ]);
+
+        Book::factory()->create([
+            'title' => 'テスト書籍B',
+            'author' => '芥川龍之介',
+        ]);
+
+        $this->get(route('books.index', ['keyword' => '夏目']))
+            ->assertOk()
+            ->assertViewHas('books', function ($books) use ($matched) {
+                return $books->total() === 1
+                    && $books->first()->id === $matched->id;
+            });
+    }
+
+    /**
+     * ジャンルで絞り込める
+     */
+    public function test_books_can_be_filtered_by_genre(): void
+    {
+        $novel = Genre::create(['name' => '小説']);
+        $technical = Genre::create(['name' => '技術書']);
+
+        $matched = Book::factory()->create();
+        $other = Book::factory()->create();
+
+        $matched->genres()->attach($novel->id);
+        $other->genres()->attach($technical->id);
+
+        $this->get(route('books.index', ['genre' => $novel->id]))
+            ->assertOk()
+            ->assertViewHas('books', function ($books) use ($matched) {
+                return $books->total() === 1
+                    && $books->first()->id === $matched->id;
+            });
+    }
+
+    /**
+     * キーワードとジャンルを組み合わせて検索できる
+     */
+    public function test_books_can_be_searched_by_keyword_and_genre(): void
+    {
+        $novel = Genre::create(['name' => '小説']);
+        $technical = Genre::create(['name' => '技術書']);
+
+        $matched = Book::factory()->create(['title' => 'Laravel小説']);
+        $sameKeyword = Book::factory()->create(['title' => 'Laravel技術書']);
+        $sameGenre = Book::factory()->create(['title' => '別の小説']);
+
+        $matched->genres()->attach($novel->id);
+        $sameKeyword->genres()->attach($technical->id);
+        $sameGenre->genres()->attach($novel->id);
+
+        $this->get(route('books.index', [
+            'keyword' => 'Laravel',
+            'genre' => $novel->id,
+        ]))
+            ->assertOk()
+            ->assertViewHas('books', function ($books) use ($matched) {
+                return $books->total() === 1
+                    && $books->first()->id === $matched->id;
+            });
+    }
+
+    /**
+     * 古い順に並び替えられる
+     */
+    public function test_books_can_be_sorted_by_oldest(): void
+    {
+        $old = Book::factory()->create([
+            'created_at' => '2026-01-01 10:00:00',
+        ]);
+
+        $new = Book::factory()->create([
+            'created_at' => '2026-02-01 10:00:00',
+        ]);
+
+        $this->get(route('books.index', ['sort' => 'oldest']))
+            ->assertOk()
+            ->assertViewHas('books', function ($books) use ($old, $new) {
+                return $books->pluck('id')->all() === [
+                    $old->id,
+                    $new->id,
+                ];
+            });
+    }
+
+    /**
+     * 評価の高い順に並び替えられる
+     */
+    public function test_books_can_be_sorted_by_rating(): void
+    {
+        $user = User::factory()->create();
+
+        $high = Book::factory()->create();
+        $low = Book::factory()->create();
+
+        Review::factory()->create([
+            'user_id' => $user->id,
+            'book_id' => $high->id,
+            'rating' => 5,
+        ]);
+
+        Review::factory()->create([
+            'user_id' => $user->id,
+            'book_id' => $low->id,
+            'rating' => 3,
+        ]);
+
+        $this->get(route('books.index', ['sort' => 'rating']))
+            ->assertOk()
+            ->assertViewHas('books', function ($books) use ($high, $low) {
+                return $books->pluck('id')->all() === [
+                    $high->id,
+                    $low->id,
+                ];
+            });
+    }
+
+    /**
+     * タイトル順に並び替えられる
+     */
+    public function test_books_can_be_sorted_by_title(): void
+    {
+        $bookB = Book::factory()->create(['title' => 'Bの書籍']);
+        $bookA = Book::factory()->create(['title' => 'Aの書籍']);
+
+        $this->get(route('books.index', ['sort' => 'title']))
+            ->assertOk()
+            ->assertViewHas('books', function ($books) use ($bookA, $bookB) {
+                return $books->pluck('id')->all() === [
+                    $bookA->id,
+                    $bookB->id,
+                ];
+            });
+    }
+
+    /**
+     * デフォルトでは新着順に並ぶ
+     */
+    public function test_books_are_sorted_by_newest_by_default(): void
+    {
+        $old = Book::factory()->create([
+            'created_at' => '2026-01-01 10:00:00',
+        ]);
+
+        $new = Book::factory()->create([
+            'created_at' => '2026-02-01 10:00:00',
+        ]);
+
+        $this->get(route('books.index'))
+            ->assertOk()
+            ->assertViewHas('books', function ($books) use ($old, $new) {
+                return $books->pluck('id')->all() === [
+                    $new->id,
+                    $old->id,
+                ];
+            });
+    }
+
+    /**
+     * 不正なソート指定はバリデーションエラーになる
+     */
+    public function test_invalid_sort_is_rejected(): void
+    {
+        $this->get(route('books.index', ['sort' => 'invalid']))
+            ->assertSessionHasErrors(['sort']);
+    }
+
+    /**
+     * ページ移動時も検索条件が維持される
+     */
+    public function test_search_conditions_are_preserved_in_pagination(): void
+    {
+        for ($i = 0; $i < 12; $i++) {
+            Book::factory()->create([
+                'title' => 'Laravel書籍'.$i,
+            ]);
+        }
+
+        $this->get(route('books.index', [
+            'keyword' => 'Laravel',
+            'sort' => 'title',
+        ]))
+            ->assertOk()
+            ->assertViewHas('books', function ($books) {
+                return $books->total() === 12
+                    && $books->count() === 10
+                    && $books->lastPage() === 2
+                    && str_contains(
+                        $books->url(2),
+                        'keyword=Laravel'
+                    )
+                    && str_contains(
+                        $books->url(2),
+                        'sort=title'
+                    );
+            });
+    }
+
+    /**
+     * ISBN検索成功時に書籍情報を返す
+     */
+    public function test_isbn_lookup_returns_book_information(): void
+    {
+        $user = User::factory()->create();
+
+        $bookData = [
+            'isbn' => '9781234567890',
+            'title' => 'Laravel入門',
+            'author' => '山田太郎',
+            'published_date' => '2026-01-01',
+            'description' => 'テスト用の説明文',
+            'image_url' => null,
+        ];
+
+        $mock = Mockery::mock(GoogleBooksService::class);
+
+        $mock->shouldReceive('searchByIsbn')
+            ->once()
+            ->with('9781234567890')
+            ->andReturn($bookData);
+
+        $this->app->instance(GoogleBooksService::class, $mock);
+
+        $this->actingAs($user)
+            ->getJson(route('books.isbn', ['isbn' => '9781234567890']))
+            ->assertOk()
+            ->assertJson([
+                'message' => '書籍情報を取得しました。',
+                'data' => $bookData,
+            ]);
+    }
+
+    /**
+     * ISBNが13文字以外なら422を返す
+     */
+    public function test_isbn_lookup_rejects_invalid_length(): void
+    {
+        $user = User::factory()->create();
+
+        $mock = Mockery::mock(GoogleBooksService::class);
+
+        $mock->shouldNotReceive('searchByIsbn');
+
+        $this->app->instance(GoogleBooksService::class, $mock);
+
+        $this->actingAs($user)
+            ->getJson(route('books.isbn', ['isbn' => '123456789012']))
+            ->assertStatus(422)
+            ->assertJson([
+                'message' => 'ISBNは13文字で入力してください。',
+            ]);
+    }
+
+    /**
+     * 書籍情報を取得できなければ404を返す
+     */
+    public function test_isbn_lookup_returns_404_when_book_not_found(): void
+    {
+        $user = User::factory()->create();
+
+        $mock = Mockery::mock(GoogleBooksService::class);
+
+        $mock->shouldReceive('searchByIsbn')
+            ->once()
+            ->with('9781234567890')
+            ->andReturn(null);
+
+        $this->app->instance(GoogleBooksService::class, $mock);
+
+        $this->actingAs($user)
+            ->getJson(route('books.isbn', ['isbn' => '9781234567890']))
+            ->assertNotFound()
+            ->assertJson([
+                'message' => '書籍情報を取得できませんでした。手入力で登録してください。',
+            ]);
     }
 }
