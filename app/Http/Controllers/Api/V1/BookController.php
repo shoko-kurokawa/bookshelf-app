@@ -7,8 +7,8 @@ use App\Http\Requests\Api\StoreBookRequest;
 use App\Http\Requests\Api\UpdateBookRequest;
 use App\Http\Resources\BookResource;
 use App\Models\Book;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
@@ -34,18 +34,42 @@ class BookController extends Controller
             ->withAvg('reviews', 'rating')
             ->withCount('reviews');
 
-        // キーワード検索（タイトル・著者名）
-        if (! empty($validated['keyword'])) {
+        if (!empty($validated['keyword'])) {
             $keyword = $validated['keyword'];
 
             $query->where(function ($q) use ($keyword) {
-                $q->where('title', 'like', '%'.$keyword.'%')
-                    ->orWhere('author', 'like', '%'.$keyword.'%');
+                $q->where('title', 'like', '%' . $keyword . '%')
+                    ->orWhere('author', 'like', '%' . $keyword . '%');
+            });
+        }
+
+        if (!empty($validated['genre_id'])) {
+            $genreId = $validated['genre_id'];
+
+            $query->whereHas('genres', function ($q) use ($genreId) {
+                $q->where('genres.id', $genreId);
+            });
+        }
+
+        $books = $query
+            ->orderByDesc('books.created_at')
+            ->orderByDesc('books.id')
+            ->paginate($perPage);
+
+        return BookResource::collection($books);
+
+        // キーワード検索（タイトル・著者名）
+        if (!empty($validated['keyword'])) {
+            $keyword = $validated['keyword'];
+
+            $query->where(function ($q) use ($keyword) {
+                $q->where('title', 'like', '%' . $keyword . '%')
+                    ->orWhere('author', 'like', '%' . $keyword . '%');
             });
         }
 
         // ジャンルで絞り込み
-        if (! empty($validated['genre_id'])) {
+        if (!empty($validated['genre_id'])) {
             $genreId = $validated['genre_id'];
 
             $query->whereHas('genres', function ($q) use ($genreId) {
@@ -88,6 +112,11 @@ class BookController extends Controller
     {
         $validated = $request->validated();
 
+        // user_idはリクエストから採用せず、認証ユーザーから取得する
+        unset($validated['user_id']);
+
+        $validated['user_id'] = $request->user()->id;
+
         $book = DB::transaction(function () use ($validated) {
             $genres = $validated['genres'];
             unset($validated['genres']);
@@ -114,14 +143,19 @@ class BookController extends Controller
         UpdateBookRequest $request,
         Book $book
     ): BookResource {
+        // 所有者以外は更新不可
+        abort_unless($book->user_id === $request->user()->id, 403);
+
         $validated = $request->validated();
+
+        // 所有者の変更を禁止
+        unset($validated['user_id']);
 
         DB::transaction(function () use ($book, $validated) {
             $genres = $validated['genres'];
             unset($validated['genres']);
 
             $book->update($validated);
-
             $book->genres()->sync($genres);
         });
 
@@ -136,8 +170,11 @@ class BookController extends Controller
     /**
      * AP05: 書籍削除API
      */
-    public function destroy(Book $book): Response
+    public function destroy(Request $request, Book $book): Response
     {
+        // 所有者以外は削除不可
+        abort_unless($book->user_id === $request->user()->id, 403);
+
         DB::transaction(function () use ($book) {
             // 関連するお気に入りを削除
             $book->favorites()->delete();

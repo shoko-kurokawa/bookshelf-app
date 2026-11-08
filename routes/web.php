@@ -6,6 +6,9 @@ use App\Http\Controllers\GenreController;
 use App\Http\Controllers\RankingController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ReviewLikeController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ReadingPlanController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 // トップページ
@@ -75,12 +78,65 @@ Route::middleware('auth')->group(function () {
     Route::resource('genres', GenreController::class);
 });
 
+// ==========================================
+// 応用版：マイ読書レポート
+// ==========================================
+Route::middleware('auth')->group(function () {
+    Route::get('/reports', [\App\Http\Controllers\ReportController::class, 'index'])
+        ->name('reports.index');
+});
+
+// ==========================================
+// 応用版：読書計画
+// ==========================================
+Route::middleware('auth')->group(function () {
+    Route::get('/reading-plans', [\App\Http\Controllers\ReadingPlanController::class, 'index'])
+        ->name('reading-plans.index');
+
+    Route::get('/reading-plans/create', [\App\Http\Controllers\ReadingPlanController::class, 'create'])
+        ->name('reading-plans.create');
+
+    Route::post('/reading-plans', [\App\Http\Controllers\ReadingPlanController::class, 'store'])
+        ->name('reading-plans.store');
+
+    Route::get('/reading-plans/{readingPlan}/edit', [\App\Http\Controllers\ReadingPlanController::class, 'edit'])
+        ->name('reading-plans.edit');
+
+    Route::put('/reading-plans/{readingPlan}', [\App\Http\Controllers\ReadingPlanController::class, 'update'])
+        ->name('reading-plans.update');
+
+    Route::post('/reading-plans/{readingPlan}/complete', [\App\Http\Controllers\ReadingPlanController::class, 'complete'])
+        ->name('reading-plans.complete');
+
+    Route::delete('/reading-plans/{readingPlan}', [\App\Http\Controllers\ReadingPlanController::class, 'destroy'])
+        ->name('reading-plans.destroy');
+});
+
+// ==========================================
+// 応用版：通知
+// ==========================================
+Route::middleware('auth')->group(function () {
+    Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index'])
+        ->name('notifications.index');
+
+    Route::post('/notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'read'])
+        ->name('notifications.read');
+});
+
+// ==========================================
+// 応用版：Google Books ISBN検索
+// ==========================================
+Route::middleware('auth')->group(function () {
+    Route::get('/books/isbn/{isbn}', [BookController::class, 'lookupIsbn'])
+        ->name('books.isbn');
+});
+
 // Issue #1で作成した仮のホーム画面
 Route::middleware('auth')->get('/home', function () {
     return '
         <h1>ログイン成功！BookShelfへようこそ！</h1>
         <form method="POST" action="/logout">
-            <input type="hidden" name="_token" value="'.csrf_token().'">
+            <input type="hidden" name="_token" value="' . csrf_token() . '">
             <button type="submit">ログアウト</button>
         </form>
     ';

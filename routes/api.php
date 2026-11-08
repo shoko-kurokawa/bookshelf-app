@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\BookController as ApiBookController;
+use App\Http\Controllers\Api\V1\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -10,12 +11,34 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-// 基本版：認証不要の書籍API
 Route::prefix('v1')->group(function () {
-    Route::apiResource('books', ApiBookController::class);
-});
+    // 認証不要：ログイン
+    Route::post('/login', [AuthController::class, 'login'])
+        ->name('api.login');
 
-// 応用版で使用するSanctum認証ルート
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+    // 認証不要：書籍一覧・詳細
+    Route::get('/books', [ApiBookController::class, 'index']);
+    Route::get('/books/{book}', [ApiBookController::class, 'show'])
+        ->whereNumber('book');
+
+    // Sanctum認証必須
+    Route::middleware('auth:sanctum')->group(function () {
+
+        // ログアウト（現在のトークンを失効）
+        Route::post('/logout', [AuthController::class, 'logout'])
+            ->name('api.logout');
+
+        Route::get('/user', function (Request $request) {
+            return $request->user();
+        });
+
+        // 書籍登録・更新・削除
+        Route::post('/books', [ApiBookController::class, 'store']);
+        Route::put('/books/{book}', [ApiBookController::class, 'update'])
+            ->whereNumber('book');
+        Route::patch('/books/{book}', [ApiBookController::class, 'update'])
+            ->whereNumber('book');
+        Route::delete('/books/{book}', [ApiBookController::class, 'destroy'])
+            ->whereNumber('book');
+    });
 });
