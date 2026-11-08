@@ -13,7 +13,7 @@ class AuthController extends Controller
 {
     /**
      * APIログイン
-     * 
+     *
      * メールアドレスとパスワードを検証し、
      * SanctumのBearerトークンを発行する。
      */
@@ -27,8 +27,8 @@ class AuthController extends Controller
         $user = User::where('email', $credentials['email'])->first();
 
         if (
-            !$user ||
-            !Hash::check($credentials['password'], $user->password)
+            ! $user ||
+            ! Hash::check($credentials['password'], $user->password)
         ) {
             return response()->json([
                 'message' => 'メールアドレスまたはパスワードが正しくありません。',
@@ -51,14 +51,14 @@ class AuthController extends Controller
 
     /**
      * APIログアウト
-     * 
+     *
      * リクエストで使用したBearerトークンのみを失効する。
      */
     public function logout(Request $request): JsonResponse
     {
         $token = $request->user()->currentAccessToken();
 
-        if (!$token instanceof PersonalAccessToken) {
+        if (! $token instanceof PersonalAccessToken) {
             return response()->json([
                 'message' => '有効なBearerトークンが必要です。',
             ], 401);

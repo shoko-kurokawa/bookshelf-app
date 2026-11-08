@@ -135,7 +135,7 @@ class BookApiTest extends TestCase
         ]);
 
         $response = $this->getJson(
-            '/api/v1/books?keyword=' . urlencode('テスト著者')
+            '/api/v1/books?keyword='.urlencode('テスト著者')
         );
 
         $response->assertOk()
@@ -163,7 +163,7 @@ class BookApiTest extends TestCase
         $bookB->genres()->attach($genreB->id);
 
         $response = $this->getJson(
-            '/api/v1/books?genre_id=' . $genreA->id
+            '/api/v1/books?genre_id='.$genreA->id
         );
 
         $response->assertOk()
@@ -194,7 +194,7 @@ class BookApiTest extends TestCase
         $genre = Genre::create(['name' => '科学']);
         $book->genres()->attach($genre->id);
 
-        $response = $this->getJson('/api/v1/books/' . $book->id);
+        $response = $this->getJson('/api/v1/books/'.$book->id);
 
         $response->assertOk()
             ->assertJsonPath('data.id', $book->id)
@@ -335,7 +335,7 @@ class BookApiTest extends TestCase
         $book->genres()->attach($oldGenre->id);
         Sanctum::actingAs($book->user);
 
-        $response = $this->putJson('/api/v1/books/' . $book->id, [
+        $response = $this->putJson('/api/v1/books/'.$book->id, [
             'title' => 'API更新後タイトル',
             'author' => '更新後著者',
             'isbn' => $book->isbn,
@@ -397,7 +397,7 @@ class BookApiTest extends TestCase
         Sanctum::actingAs($user);
 
         $response = $this->deleteJson(
-            '/api/v1/books/' . $book->id
+            '/api/v1/books/'.$book->id
         );
 
         $response->assertNoContent();
@@ -436,8 +436,8 @@ class BookApiTest extends TestCase
         $book = Book::factory()->create();
 
         $this->postJson('/api/v1/books', [])->assertUnauthorized();
-        $this->putJson('/api/v1/books/' . $book->id, [])->assertUnauthorized();
-        $this->deleteJson('/api/v1/books/' . $book->id)->assertUnauthorized();
+        $this->putJson('/api/v1/books/'.$book->id, [])->assertUnauthorized();
+        $this->deleteJson('/api/v1/books/'.$book->id)->assertUnauthorized();
 
         $this->assertDatabaseHas('books', ['id' => $book->id]);
     }
@@ -451,7 +451,7 @@ class BookApiTest extends TestCase
         $otherUser = User::factory()->create();
         Sanctum::actingAs($otherUser);
 
-        $this->putJson('/api/v1/books/' . $book->id, [])->assertForbidden();
+        $this->putJson('/api/v1/books/'.$book->id, [])->assertForbidden();
         $this->assertDatabaseHas('books', ['id' => $book->id]);
     }
 
@@ -464,7 +464,7 @@ class BookApiTest extends TestCase
         $otherUser = User::factory()->create();
         Sanctum::actingAs($otherUser);
 
-        $this->deleteJson('/api/v1/books/' . $book->id)->assertForbidden();
+        $this->deleteJson('/api/v1/books/'.$book->id)->assertForbidden();
         $this->assertDatabaseHas('books', ['id' => $book->id]);
     }
 
@@ -478,7 +478,7 @@ class BookApiTest extends TestCase
         $genre = Genre::create(['name' => '所有者変更テスト']);
         Sanctum::actingAs($book->user);
 
-        $this->putJson('/api/v1/books/' . $book->id, [
+        $this->putJson('/api/v1/books/'.$book->id, [
             'user_id' => $otherUser->id,
             'title' => $book->title,
             'author' => $book->author,
@@ -492,5 +492,4 @@ class BookApiTest extends TestCase
             'user_id' => $book->user_id,
         ]);
     }
-
 }

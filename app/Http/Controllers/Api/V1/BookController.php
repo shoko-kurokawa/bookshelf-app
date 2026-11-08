@@ -7,8 +7,8 @@ use App\Http\Requests\Api\StoreBookRequest;
 use App\Http\Requests\Api\UpdateBookRequest;
 use App\Http\Resources\BookResource;
 use App\Models\Book;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
@@ -34,16 +34,16 @@ class BookController extends Controller
             ->withAvg('reviews', 'rating')
             ->withCount('reviews');
 
-        if (!empty($validated['keyword'])) {
+        if (! empty($validated['keyword'])) {
             $keyword = $validated['keyword'];
 
             $query->where(function ($q) use ($keyword) {
-                $q->where('title', 'like', '%' . $keyword . '%')
-                    ->orWhere('author', 'like', '%' . $keyword . '%');
+                $q->where('title', 'like', '%'.$keyword.'%')
+                    ->orWhere('author', 'like', '%'.$keyword.'%');
             });
         }
 
-        if (!empty($validated['genre_id'])) {
+        if (! empty($validated['genre_id'])) {
             $genreId = $validated['genre_id'];
 
             $query->whereHas('genres', function ($q) use ($genreId) {
@@ -59,17 +59,17 @@ class BookController extends Controller
         return BookResource::collection($books);
 
         // キーワード検索（タイトル・著者名）
-        if (!empty($validated['keyword'])) {
+        if (! empty($validated['keyword'])) {
             $keyword = $validated['keyword'];
 
             $query->where(function ($q) use ($keyword) {
-                $q->where('title', 'like', '%' . $keyword . '%')
-                    ->orWhere('author', 'like', '%' . $keyword . '%');
+                $q->where('title', 'like', '%'.$keyword.'%')
+                    ->orWhere('author', 'like', '%'.$keyword.'%');
             });
         }
 
         // ジャンルで絞り込み
-        if (!empty($validated['genre_id'])) {
+        if (! empty($validated['genre_id'])) {
             $genreId = $validated['genre_id'];
 
             $query->whereHas('genres', function ($q) use ($genreId) {
