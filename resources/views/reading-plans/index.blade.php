@@ -10,7 +10,8 @@
             <div class="mb-4 flex justify-between items-center">
                 <form method="GET" action="{{ route('reading-plans.index') }}" class="flex items-center space-x-2">
                     <label for="status" class="text-sm text-gray-700">状態:</label>
-                    <select name="status" id="status" onchange="this.form.submit()" class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                    <select name="status" id="status" onchange="this.form.submit()"
+                        class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
                         <option value="">すべて</option>
                         @foreach (\App\Enums\ReadingPlanStatus::cases() as $statusOption)
                             <option value="{{ $statusOption->value }}" @selected($currentStatus === $statusOption->value)>
@@ -19,7 +20,8 @@
                         @endforeach
                     </select>
                 </form>
-                <a href="{{ route('reading-plans.create') }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                <a href="{{ route('reading-plans.create') }}"
+                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                     新規計画作成
                 </a>
             </div>
@@ -38,18 +40,29 @@
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">書籍</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">期日</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">完了日</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状態</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        書籍</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        期日</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        完了日</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        状態</th>
+                                    <th
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        操作</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach($readingPlans as $plan)
                                     <tr>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <a href="{{ route('books.show', $plan->book) }}" class="text-blue-600 hover:text-blue-800">
+                                            <a href="{{ route('books.show', $plan->book) }}"
+                                                class="text-blue-600 hover:text-blue-800">
                                                 {{ $plan->book->title }}
                                             </a>
                                         </td>
@@ -60,19 +73,25 @@
                                             {{ $plan->completed_at?->format('Y-m-d') ?? '-' }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $plan->status->badgeClass() }}">
+                                            <span
+                                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $plan->status->badgeClass() }}">
                                                 {{ $plan->status->label() }}
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
                                             @if($plan->status !== \App\Enums\ReadingPlanStatus::Completed)
-                                                <form action="{{ route('reading-plans.complete', $plan) }}" method="POST" class="inline" novalidate>
+                                                <form action="{{ route('reading-plans.complete', $plan) }}" method="POST"
+                                                    class="inline">
                                                     @csrf
+                                                    @method('PATCH')
+
                                                     <button type="submit" class="text-green-600 hover:text-green-900">読了する</button>
                                                 </form>
-                                                <a href="{{ route('reading-plans.edit', $plan) }}" class="text-indigo-600 hover:text-indigo-900">編集</a>
+                                                <a href="{{ route('reading-plans.edit', $plan) }}"
+                                                    class="text-indigo-600 hover:text-indigo-900">編集</a>
                                             @endif
-                                            <form action="{{ route('reading-plans.destroy', $plan) }}" method="POST" class="inline" onsubmit="return confirm('本当に削除しますか？');" novalidate>
+                                            <form action="{{ route('reading-plans.destroy', $plan) }}" method="POST"
+                                                class="inline" onsubmit="return confirm('本当に削除しますか？');" novalidate>
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="text-red-600 hover:text-red-900">削除</button>
@@ -82,6 +101,9 @@
                                 @endforeach
                             </tbody>
                         </table>
+                        <div class="mt-6">
+                            {{ $readingPlans->links() }}
+                        </div>
                     @endif
                 </div>
             </div>

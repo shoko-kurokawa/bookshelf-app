@@ -105,7 +105,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/reading-plans/{readingPlan}', [ReadingPlanController::class, 'update'])
         ->name('reading-plans.update');
 
-    Route::post('/reading-plans/{readingPlan}/complete', [ReadingPlanController::class, 'complete'])
+    Route::patch('/reading-plans/{readingPlan}/complete', [ReadingPlanController::class, 'complete'])
         ->name('reading-plans.complete');
 
     Route::delete('/reading-plans/{readingPlan}', [ReadingPlanController::class, 'destroy'])
@@ -136,7 +136,7 @@ Route::middleware('auth')->get('/home', function () {
     return '
         <h1>ログイン成功！BookShelfへようこそ！</h1>
         <form method="POST" action="/logout">
-            <input type="hidden" name="_token" value="'.csrf_token().'">
+            <input type="hidden" name="_token" value="' . csrf_token() . '">
             <button type="submit">ログアウト</button>
         </form>
     ';
