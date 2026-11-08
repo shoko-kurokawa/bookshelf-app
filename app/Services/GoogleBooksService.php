@@ -17,13 +17,13 @@ class GoogleBooksService
     public function searchByIsbn(string $isbn): ?array
     {
         $params = [
-            'q' => 'isbn:' . $isbn,
+            'q' => 'isbn:'.$isbn,
             'maxResults' => 1,
         ];
 
         $apiKey = config('services.google_books.api_key');
 
-        if (!empty($apiKey)) {
+        if (! empty($apiKey)) {
             $params['key'] = $apiKey;
         }
 
@@ -32,11 +32,11 @@ class GoogleBooksService
                 ->acceptJson()
                 ->get(
                     rtrim(config('services.google_books.base_url'), '/')
-                    . '/volumes',
+                    .'/volumes',
                     $params
                 );
 
-            if (!$response->successful()) {
+            if (! $response->successful()) {
                 Log::warning('Google Books API request failed.', [
                     'status' => $response->status(),
                 ]);
@@ -46,7 +46,7 @@ class GoogleBooksService
 
             $volume = $response->json('items.0.volumeInfo');
 
-            if (!is_array($volume)) {
+            if (! is_array($volume)) {
                 return null;
             }
 
@@ -63,9 +63,9 @@ class GoogleBooksService
 
             // 不正な日付はフォームに反映しない
             if (
-                !is_string($publishedDate)
-                || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $publishedDate)
-                || !checkdate(
+                ! is_string($publishedDate)
+                || ! preg_match('/^\d{4}-\d{2}-\d{2}$/', $publishedDate)
+                || ! checkdate(
                     (int) substr($publishedDate, 5, 2),
                     (int) substr($publishedDate, 8, 2),
                     (int) substr($publishedDate, 0, 4)
