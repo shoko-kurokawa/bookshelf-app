@@ -24,7 +24,7 @@ class ReadingPlanController extends Controller
 
         $validStatuses = array_column(ReadingPlanStatus::cases(), 'value');
 
-        if (!in_array($currentStatus, $validStatuses, true)) {
+        if (! in_array($currentStatus, $validStatuses, true)) {
             $currentStatus = '';
         }
 

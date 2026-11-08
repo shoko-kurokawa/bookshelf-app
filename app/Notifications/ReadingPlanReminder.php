@@ -13,8 +13,7 @@ class ReadingPlanReminder extends Notification
     public function __construct(
         private ReadingPlan $readingPlan,
         private string $reminderType
-    ) {
-    }
+    ) {}
 
     /**
      * 通知方法：データベースのみ

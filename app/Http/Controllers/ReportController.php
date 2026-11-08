@@ -29,7 +29,7 @@ class ReportController extends Controller
 
         // ② 評価分布（星1〜5を必ず表示）
         $ratingDistribution = collect(range(1, 5))
-            ->map(fn($rating) => $reviews
+            ->map(fn ($rating) => $reviews
                 ->where('rating', $rating)
                 ->count());
 
@@ -37,8 +37,7 @@ class ReportController extends Controller
         // 同じ書籍への複数レビューは、暫定的に最高評価を採用
         $topRatedBooks = $reviews
             ->filter(
-                fn($review) =>
-                    $review->rating >= 4 && $review->book !== null
+                fn ($review) => $review->rating >= 4 && $review->book !== null
             )
             ->groupBy('book_id')
             ->map(function ($bookReviews) {
@@ -69,7 +68,7 @@ class ReportController extends Controller
                 }
 
                 return $review->book->genres
-                    ->map(fn($genre) => [
+                    ->map(fn ($genre) => [
                         'id' => $genre->id,
                         'name' => $genre->name,
                         'rating' => $review->rating,
