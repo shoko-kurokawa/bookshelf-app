@@ -32,7 +32,7 @@
                                 <label for="genre" class="block text-sm font-medium text-gray-700 mb-1">ジャンル</label>
                                 <select name="genre" id="genre" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                     <option value="">すべて</option>
-                                    @foreach($genres ?? [] as $genre)
+                                    @foreach($genres as $genre)
                                         <option value="{{ $genre->id }}" {{ request('genre') == $genre->id ? 'selected' : '' }}>
                                             {{ $genre->name }}
                                         </option>
@@ -66,7 +66,7 @@
                 </div>
             </div>
 
-            @if(request('keyword') || request('genre'))
+            @if(request('keyword') || request('genre') || request('sort'))
                 <div class="mb-4 text-gray-600">
                     検索結果: {{ $books->total() }}件
                 </div>
