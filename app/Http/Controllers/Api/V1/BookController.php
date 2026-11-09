@@ -34,30 +34,6 @@ class BookController extends Controller
             ->withAvg('reviews', 'rating')
             ->withCount('reviews');
 
-        if (! empty($validated['keyword'])) {
-            $keyword = $validated['keyword'];
-
-            $query->where(function ($q) use ($keyword) {
-                $q->where('title', 'like', '%'.$keyword.'%')
-                    ->orWhere('author', 'like', '%'.$keyword.'%');
-            });
-        }
-
-        if (! empty($validated['genre_id'])) {
-            $genreId = $validated['genre_id'];
-
-            $query->whereHas('genres', function ($q) use ($genreId) {
-                $q->where('genres.id', $genreId);
-            });
-        }
-
-        $books = $query
-            ->orderByDesc('books.created_at')
-            ->orderByDesc('books.id')
-            ->paginate($perPage);
-
-        return BookResource::collection($books);
-
         // キーワード検索（タイトル・著者名）
         if (! empty($validated['keyword'])) {
             $keyword = $validated['keyword'];
