@@ -167,4 +167,28 @@ class FavoriteTest extends TestCase
         $response->assertSee('自分のお気に入り書籍');
         $response->assertDontSee('他人のお気に入り書籍');
     }
+
+    /**
+     * お気に入り登録URLが要件どおり複数形になっている
+     */
+    public function test_favorite_toggle_route_uses_plural_url(): void
+    {
+        $book = Book::factory()->create();
+
+        $this->assertSame(
+            url("/books/{$book->id}/favorites"),
+            route('favorites.toggle', $book)
+        );
+
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->post("/books/{$book->id}/favorites")
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('favorites', [
+            'user_id' => $user->id,
+            'book_id' => $book->id,
+        ]);
+    }
 }

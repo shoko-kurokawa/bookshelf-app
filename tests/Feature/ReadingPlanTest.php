@@ -6,6 +6,7 @@ use App\Enums\ReadingPlanStatus;
 use App\Models\Book;
 use App\Models\ReadingPlan;
 use App\Models\User;
+use App\Notifications\ReadingPlanReminder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Tests\TestCase;
@@ -569,5 +570,56 @@ class ReadingPlanTest extends TestCase
             ReadingPlanStatus::InProgress,
             $activePlan->fresh()->status
         );
+    }
+
+    /**
+     * 読書計画削除時に関連するリマインダー通知だけが削除される
+     */
+    public function test_deleting_plan_removes_only_related_reminder_notifications(): void
+    {
+        $user = User::factory()->create();
+
+        $bookA = Book::factory()->for($user)->create();
+        $bookB = Book::factory()->for($user)->create();
+
+        $planA = $this->createPlan($user, $bookA);
+        $planB = $this->createPlan($user, $bookB);
+
+        // それぞれの読書計画について通知を作成
+        $user->notify(new ReadingPlanReminder($planA, 'before_3_days'));
+        $user->notify(new ReadingPlanReminder($planB, 'on_target_date'));
+
+        $this->assertDatabaseCount('notifications', 2);
+
+        // 計画Aだけ削除
+        $this->actingAs($user)
+            ->delete(route('reading-plans.destroy', $planA))
+            ->assertRedirect(route('reading-plans.index'));
+
+        // 計画Aとその通知は削除される
+        $this->assertDatabaseMissing('reading_plans', [
+            'id' => $planA->id,
+        ]);
+
+        $this->assertSame(
+            0,
+            $user->notifications()
+                ->where('data->reading_plan_id', $planA->id)
+                ->count()
+        );
+
+        // 計画Bとその通知は残る
+        $this->assertDatabaseHas('reading_plans', [
+            'id' => $planB->id,
+        ]);
+
+        $this->assertSame(
+            1,
+            $user->notifications()
+                ->where('data->reading_plan_id', $planB->id)
+                ->count()
+        );
+
+        $this->assertDatabaseCount('notifications', 1);
     }
 }
