@@ -28,12 +28,12 @@ class BookController extends Controller
         $validated = $request->validate([
             'keyword' => ['nullable', 'string', 'max:255'],
             'genre' => ['nullable', 'integer', 'exists:genres,id'],
-            'sort' => ['nullable', 'in:newest,oldest,rating,title'],
+            'sort' => ['nullable', 'in:latest,oldest,rating,title'],
         ]);
 
         $keyword = trim($validated['keyword'] ?? '');
         $genreId = $validated['genre'] ?? null;
-        $sort = $validated['sort'] ?? 'newest';
+        $sort = $validated['sort'] ?? 'latest';
 
         // 書籍一覧のクエリ
         $query = Book::query()
@@ -72,7 +72,7 @@ class BookController extends Controller
                     ->orderBy('id', 'asc');
                 break;
 
-            case 'newest':
+            case 'latest':
             default:
                 $query->orderByDesc('created_at')
                     ->orderByDesc('id');

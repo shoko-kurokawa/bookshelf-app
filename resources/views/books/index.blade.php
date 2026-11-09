@@ -42,7 +42,7 @@
                             <div>
                                 <label for="sort" class="block text-sm font-medium text-gray-700 mb-1">並び順</label>
                                 <select name="sort" id="sort" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                    <option value="newest" {{ request('sort') == 'newest' ? 'selected' : '' }}>新しい順</option>
+                                    <option value="latest" {{ request('sort') == 'latest' ? 'selected' : '' }}>新しい順</option>
                                     <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>古い順</option>
                                     <option value="rating" {{ request('sort') == 'rating' ? 'selected' : '' }}>評価順</option>
                                     <option value="title" {{ request('sort') == 'title' ? 'selected' : '' }}>タイトル順</option>

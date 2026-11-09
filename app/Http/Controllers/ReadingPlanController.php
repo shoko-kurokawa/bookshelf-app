@@ -7,6 +7,7 @@ use App\Http\Requests\StoreReadingPlanRequest;
 use App\Http\Requests\UpdateReadingPlanRequest;
 use App\Models\Book;
 use App\Models\ReadingPlan;
+use App\Notifications\ReadingPlanReminder;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -196,7 +197,18 @@ class ReadingPlanController extends Controller
     ): RedirectResponse {
         $this->ensureOwner($request, $readingPlan);
 
-        $readingPlan->delete();
+        DB::transaction(function () use ($request, $readingPlan) {
+            // この読書計画に紐づくリマインダー通知のみ削除
+            $request->user()
+                ->notifications()
+                ->where('type', ReadingPlanReminder::class)
+                ->where('data->reading_plan_id', $readingPlan->id)
+                ->delete();
+
+            // 読書計画を削除
+            // リマインダー履歴は外部キーのCASCADEで削除される
+            $readingPlan->delete();
+        });
 
         return redirect()
             ->route('reading-plans.index')

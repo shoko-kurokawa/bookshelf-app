@@ -507,7 +507,7 @@ class BookTest extends TestCase
     /**
      * デフォルトでは新着順に並ぶ
      */
-    public function test_books_are_sorted_by_newest_by_default(): void
+    public function test_books_are_sorted_by_latest_by_default(): void
     {
         $old = Book::factory()->create([
             'created_at' => '2026-01-01 10:00:00',
@@ -525,6 +525,38 @@ class BookTest extends TestCase
                     $old->id,
                 ];
             });
+    }
+
+    /**
+     * latestを指定すると新着順に並ぶ
+     */
+    public function test_books_can_be_sorted_by_latest(): void
+    {
+        $old = Book::factory()->create([
+            'created_at' => '2026-01-01 10:00:00',
+        ]);
+
+        $new = Book::factory()->create([
+            'created_at' => '2026-02-01 10:00:00',
+        ]);
+
+        $this->get(route('books.index', ['sort' => 'latest']))
+            ->assertOk()
+            ->assertViewHas('books', function ($books) use ($old, $new) {
+                return $books->pluck('id')->all() === [
+                    $new->id,
+                    $old->id,
+                ];
+            });
+    }
+
+    /**
+     * 旧指定のnewestは受け付けない
+     */
+    public function test_old_newest_sort_is_rejected(): void
+    {
+        $this->get(route('books.index', ['sort' => 'newest']))
+            ->assertSessionHasErrors(['sort']);
     }
 
     /**
